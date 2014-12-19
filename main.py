@@ -12,9 +12,8 @@ pga_gain_code = f['/dru/capture/rdt/pga_gain_code']
 
 print ("%s\t" % ("time_data"))
 
-print (pga_gain_code[()])
-#for i in range (len(time_data)):
-#	print(time_data[i])
+print (sample_rate[()])
+
 f.close()
 
 #import pdb
