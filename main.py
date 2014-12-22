@@ -1,21 +1,17 @@
 
-filename = '3rdFireTestSet.hdf5'
+import pdb
+import file_operations as fo
 
-import h5py
+FNAME = '3rdFireTestSet.hdf5'
 
-f = h5py.File(filename,'r')
+def main():
+    fo.readFile(FNAME)
+    data = fo.Data(time_data,labels,sample_rate, pga_gain_code)
+    print (data._sample_rate)
 
-time_data = f['/dru/capture/data']
-labels = f['/dru/capture/labels']
-sample_rate = f['/dru/capture/rdt/sample_rate']
-pga_gain_code = f['/dru/capture/rdt/pga_gain_code']
-
-print ("%s\t" % ("time_data"))
-
-print (sample_rate[()])
-
-f.close()
-
-#import pdb
-#pdb.set_trace()
+pdb.set_trace()
 #pass
+if __name__ == "__main__":
+    main()
+
+#print (sample_rate[()])
