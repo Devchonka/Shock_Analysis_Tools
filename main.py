@@ -1,20 +1,19 @@
 #!usr/bin/python
 
-import pdb
 import file_operations as fo
-
-FNAME = '3rdFireTestSet.hdf5'
-
+import Smallwood
 
 def main():
+    fname = '3rdFireTestSet.hdf5'
     data = fo.Data()
-    fo.readFile(FNAME, data)
-    #print (data._sample_rate)
-    print("HELLO!")
-    #data.release()
+    fo.readFile(fname, data)
 
-# pdb.set_trace()
-# pass
+    # octave = 1/octaveLvl
+    # n = ceil(log2(maxHz/minHz)/octave)
+    # data.srs_fn = minHz*2.^(octave*(0:n))'
+
+    # data.srs_gs = smallwood(data._time_data,fn)
+
 if __name__ == "__main__":
     main()
 
