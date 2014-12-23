@@ -15,16 +15,13 @@ def get_fn():
     return fn
 
 
-def smallwood(input, fn):
+def smallwood(input, fn):  # input is nxm 2D array, where first row is time and the rest are accel readings
     t_min = input[0, 0]
     t_max = input[0, -1]
-    n = len(input[0])  # number time data points
-    dt = (t_max - t_min) / (n - 1)
-
+    num_pts = len(input[0])  # number time data points
+    dt = (t_max - t_min) / (num_pts - 1)
     t_m = (t_max - t_min) + 1 / fn[0]
     yy = [0] * int(round(t_m / dt))
-
-
 
     for i in range(0, len(input[1])):
         yy[i] = input[1, i]
