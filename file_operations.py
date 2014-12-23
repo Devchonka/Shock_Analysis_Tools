@@ -1,6 +1,4 @@
 # Functions to manipulate original data file and class definition for data object
-# import pdb
-# pdb.set_trace()
 
 # TO DO:
 # Do I need a class destructor to free memory ?

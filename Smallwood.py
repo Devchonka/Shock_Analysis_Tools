@@ -3,6 +3,7 @@
 from __future__ import division
 import math
 import numpy as np
+import scipy.signal as sc
 
 
 def get_fn():
@@ -20,86 +21,43 @@ def smallwood(input, fn):
     n = len(input[0])  # number time data points
     dt = (t_max - t_min) / (n - 1)
 
-    tmax1 = (t_max - t_min) + 1 / fn[1]  # not sure whats this
+    t_m = (t_max - t_min) + 1 / fn[0]
+    yy = [0] * int(round(t_m / dt))
 
-    limit = round(t_max / dt)
-    n = limit
 
-    yy = []
-    # for i in input[0]
-    # yy[i]= input[:,2]
 
-    zeta = 0.05  # use default damping coeff
+    for i in range(0, len(input[1])):
+        yy[i] = input[1, i]
 
+    zeta = 0.05  # aka Q = 10
+
+    srs_resp = []
+    a1, a2, b1, b2, b3 = ([] for i in range(5))
     # SRS transfer function calculations
-
-    for i in range(1, len(fn)):
+    for i in range(0, len(fn)):
         omega_n = 2 * math.pi * fn[i]
         omega_d = omega_n * math.sqrt(1 - zeta ** 2)
-        print omega_d
+        E = math.exp(-zeta * omega_n * dt)
+        K = omega_d * dt
+        C = E * math.cos(K)
+        S = E * math.sin(K)
+        S_p = S / K
 
-#
-# for i = 1:length(fn)
-# omega = 2.*pi*fn(i);
-#     omegad = omega*sqrt(1.-(damp^2));
-#     cosd=cos(omegad*dt);
-#     sind=sin(omegad*dt);
-#     domegadt=damp*omega*dt;
-#
-#     %smallwood algo calculations
-#
-#     E=exp(-damp*omega*dt);
-#     K=omegad*dt;
-# 	C=E*cos(K);
-#     S=E*sin(K);
-# 	Sp=S/K;
-#
-#     a1(i)=2*C;
-# 	a2(i)=-E^2;
-# 	b1(i)=1.-Sp;
-# 	b2(i)=2.*(Sp-C);
-# 	b3(i)=E^2-Sp;
-#
-#
-#     %richman a;gp calculations
-#
-# %    a1(j)=2.*exp(-domegadt)*cosd;
-# %    a2(j)=-exp(-2.*domegadt);
-# %    b1(j)=2.*domegadt;
-# %    b2(j)=omega*dt*exp(-domegadt);
-# %    b2(j)=b2(j)*( (omega/omegad)*(1.-2.*(damp^2))*sind -2.*damp*cosd );
-# %    b3(j)=0;
-#
-# %%
-#
-#     %transfer function values
-#     forward=[ b1(i),  b2(i),  b3(i) ];
-#     back   =[     1, -a1(i), -a2(i) ];
-#
-#
-#     %MATLAB function, outputs the filtered vector 'resp' from 'y' values
-#     resp = filter(forward,back,yy);
-#
-#     %primary response
-#     primax = max(0, max(resp));
-#     primin = abs(min(0,min(resp)));
-#     priabs = max(primax, primin);
-#
-# %%
-# %determination of how SRS data is selected - see SHSPEC.m for reference
-#
-#    jtype = abs(itype); datamax = max(abs(y));
-#
-#    %special case when input is zero
-#    if datamax <= eps
-#        if jtype < 10, SRS_data_vector(1); end
-#        if jtype == 10; SRS_data_vector = zeros(1,length(fn)); end
-#    end
-#
-#    error='error in Smallwood calculaton';
-#    if jtype>10, error,itype, end
-#    if itype==0, error, itype, end
-#
-#
-#
-#     SRS_data_vector(i)=priabs;
+        a1.append(- 2 * C)
+        a2.append(E**2)
+        b1.append(1 - S_p)
+        b2.append(2 * (S_p - C))
+        b3.append(E**2 - S_p)
+
+        # transfer functions
+        num = [b1[i], b2[i], b3[i]]
+        den = [1, a1[i], a2[i]]
+
+        y_response = sc.filtfilt(num, den, yy)
+        # primary response
+        pri_max = max(0, max(y_response))
+        pri_min = abs(min(0, min(y_response)))
+        pri_abs = max(pri_max, pri_min)
+
+        srs_resp.append(pri_abs)
+    return srs_resp
