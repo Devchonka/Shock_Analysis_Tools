@@ -2,16 +2,15 @@
 # Code based on "An Improved Recursive Formula For Calculating Shock Response Spectra" b David O Smallwood
 from __future__ import division
 import math
+import numpy as np
 
 
 def get_fn():
-    octave = 1/12  # a factor of 2 in frequency (next freq is twice prev) - reduces coupling of test support and electronics
+    octave = 1 / 12  # a factor of 2 in frequency (next freq is twice prev) - reduces coupling of test support and electronics
     fn_min = 100
     fn_max = 100000
-    n = math.ceil(math.log((fn_max/fn_min)/octave, 2))
-    # import pdb
-    # pdb.set_trace()
-    fn = fn_min * 2 **(octave * range(0,n))
+    n = math.ceil(math.log((fn_max / fn_min), 2) / octave)
+    fn = fn_min * 2 ** ( octave * np.arange(0.0, n, 1.0))
     return fn
 
 
@@ -19,30 +18,29 @@ def smallwood(input, fn):
     t_min = input[0, 0]
     t_max = input[0, -1]
     n = len(input[0])  # number time data points
-    dt = (t_max - t_min) / (n-1)
+    dt = (t_max - t_min) / (n - 1)
 
-    tmax1 = (t_max-t_min) + 1 / fn[1] # not sure whats this
+    tmax1 = (t_max - t_min) + 1 / fn[1]  # not sure whats this
 
-    limit = round(t_max/dt)
+    limit = round(t_max / dt)
     n = limit
-
 
     yy = []
     # for i in input[0]
-    #    yy[i]= input[:,2]
+    # yy[i]= input[:,2]
 
     zeta = 0.05  # use default damping coeff
 
     # SRS transfer function calculations
 
-    for i in range(1,len(fn)):
+    for i in range(1, len(fn)):
         omega_n = 2 * math.pi * fn[i]
-        omega_d = omega_n * math.sqrt(1-zeta**2)
+        omega_d = omega_n * math.sqrt(1 - zeta ** 2)
         print omega_d
 
 #
 # for i = 1:length(fn)
-#     omega = 2.*pi*fn(i);
+# omega = 2.*pi*fn(i);
 #     omegad = omega*sqrt(1.-(damp^2));
 #     cosd=cos(omegad*dt);
 #     sind=sin(omegad*dt);

@@ -2,6 +2,8 @@
 
 import file_operations as fo
 import Smallwood as sm
+import plotting
+
 
 def main():
     fname = '3rdFireTestSet.hdf5'
@@ -9,9 +11,11 @@ def main():
     fo.readFile(fname, data)
 
     data.srs_fn = sm.get_fn()
+    plotting.test_plot(data)
 
 
-    data.srs_gs = sm.smallwood(data._time_data,data.srs_fn)
+    data.srs_gs = sm.smallwood(data._time_data, data.srs_fn)
+
 
 if __name__ == "__main__":
     main()
