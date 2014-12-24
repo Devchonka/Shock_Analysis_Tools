@@ -3,7 +3,8 @@
 import file_operations as fo
 import Smallwood as sm
 import plotting
-
+import site; site.getsitepackages()
+['/usr/local/lib/python2.7/dist-packages', '/usr/lib/python2.7/dist-packages']
 
 def main():
     fname = '3rdFireTestSet.hdf5'
