@@ -15,24 +15,39 @@ def get_fn():
     return fn
 
 
-def smallwood(input, fn):  # input is nxm 2D array, where first row is time and the rest are accel readings
-    t_min = input[0, 0]
-    t_max = input[0, -1]
-    num_pts = len(input[0])  # number time data points
+def smallwood(accel_data, fn):  # input is nxm 2D array, where first row is time and the rest are accel readings
+    t_min = accel_data[0, 0]
+    t_max = accel_data[0, -1]
+    num_pts = len(accel_data[0])  # number time data points
     dt = (t_max - t_min) / (num_pts - 1)
     t_m = (t_max - t_min) + 1 / fn[0]
-    yy = [0] * int(round(t_m / dt))
+    t_lim_pts = int(round(t_m / dt))
+    num_zeros = t_lim_pts - num_pts
+    zeros = [0] * num_zeros
 
-    for i in range(0, len(input[1])):
-        yy[i] = input[1, i]
+    yy = []  # create unfiltered response list of lists, append zeros for filtfilt
+    for channel in range(1, 25):  # copy row 1-24 of data, append zeros to each row
+        yy.append((list(accel_data[channel]) + list(zeros)))
+
 
     zeta = 0.05  # aka Q = 10
 
     srs_resp = []
+    # y_response = []
     a1, a2, b1, b2, b3 = ([] for i in range(5))
+
+    # pri_max, pri_min, pri_abs = ([[] for x in xrange(24)] for i in range(3))
+
+    pri_abs = [[] for x in xrange(24)]
+    y_response = [[] for x in xrange(24)]
+    # y_response = []
+    # pri_max = [[] for x in xrange(24)]
+    # pri_min = [[] for x in xrange(24)]
+    # pri_abs = [[] for x in xrange(24)]
+
     # SRS transfer function calculations
-    for i in range(0, len(fn)):
-        omega_n = 2 * math.pi * fn[i]
+    for freq_idx in range(0, len(fn)):
+        omega_n = 2 * math.pi * fn[freq_idx]
         omega_d = omega_n * math.sqrt(1 - zeta ** 2)
         E = math.exp(-zeta * omega_n * dt)
         K = omega_d * dt
@@ -47,14 +62,19 @@ def smallwood(input, fn):  # input is nxm 2D array, where first row is time and 
         b3.append(E**2 - S_p)
 
         # transfer functions
-        num = [b1[i], b2[i], b3[i]]
-        den = [1, a1[i], a2[i]]
+        num = [b1[freq_idx], b2[freq_idx], b3[freq_idx]]
+        den = [1, a1[freq_idx], a2[freq_idx]]
 
-        y_response = sc.filtfilt(num, den, yy)
-        # primary response
-        pri_max = max(0, max(y_response))
-        pri_min = abs(min(0, min(y_response)))
-        pri_abs = max(pri_max, pri_min)
+        for channel in range(24):  # primary response
+            y_response[channel] = sc.filtfilt(num, den, yy[channel])
 
-        srs_resp.append(pri_abs)
+            # pri_max[channel].append(max(0, max(y_response[channel])))
+            # pri_min[channel].append(abs(min(0, min(y_response[channel]))))
+            pri_max = max(0, max(y_response[channel]))
+            pri_min = abs(min(0, min(y_response[channel])))
+            pri_abs[channel].append(max(pri_max, pri_min))
+
+    for channel in range(24):
+        srs_resp.append(pri_abs[channel])
+
     return srs_resp
