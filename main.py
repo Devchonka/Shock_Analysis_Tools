@@ -17,7 +17,7 @@ def main():
     data.srs_fn = sm.get_fn()  # add freq list into object
     data.srs_gs = sm.smallwood(data._time_data, data.srs_fn)  # add srs data into obj
 
-    plotting.test_plot(data)
+    plotting.bokeh_html(data)
 
 if __name__ == "__main__":
     main()

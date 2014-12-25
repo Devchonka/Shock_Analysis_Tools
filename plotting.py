@@ -1,10 +1,11 @@
 # Module for making plots
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import cnames
 import bokeh.plotting as bk
 
 
-def test_plot(data):
+def bokeh_html(data):
     # plt.plot(data.srs_fn, data.srs_gs)
     # plt.xlabel('Frequency (Hz)')
     # plt.ylabel('SRS (gs)')
@@ -12,13 +13,44 @@ def test_plot(data):
     # plt.show()
 
     bk.output_file("test.html", title="SRS test plots")
-    p = bk.figure(
+
+    # Figure 1: Raw time series data
+    p1 = bk.figure(
+        plot_width=500, plot_height=500,outline_line_color="red",
         tools="pan,box_zoom,reset,previewsave,resize",
-        #y_axis_type="log", x_axis_type="log", y_range=[0, 10**3], x_range=[200, 10000],
+        title="Raw Time Series Data", x_axis_label='Time(sec)', y_axis_label='Amplitude(counts)')
+
+    for channel_idx in range(24):
+        p1.line(data._time_data[0], data._time_data[channel_idx+1],
+                color=cnames.keys()[channel_idx])
+        bk.hold()
+
+    p2 = bk.figure(
+        plot_width=500, plot_height=500, outline_line_color="red",
+        tools="pan,box_zoom,reset,previewsave,resize",
         y_axis_type="log", x_axis_type="log", x_range=[200, 10000],
+        title="Testing 1 2 3", x_axis_label='Frequency (Hz)', y_axis_label='SRS (gs)')
+    # Figure 2:
+
+    for channel_idx in range(24):
+        p2.line(data.srs_fn, data.srs_gs[channel_idx],
+                color=cnames.keys()[channel_idx])
+        bk.hold()
+
+    # Figure 3: SRS Frequency Response
+    p3 = bk.figure(
+        plot_width=1000, plot_height=1000,  # width and height of the entire plot in pixels, including border space
+        outline_line_color="red",
+        tools="pan,box_zoom,reset,previewsave,resize",
+        y_axis_type="log", x_axis_type="log",
+        x_mapper_type="log", y_mapper_type="log",
         title="Testing 1 2 3", x_axis_label='Frequency (Hz)', y_axis_label='SRS (gs)')
 
     for channel_idx in range(24):
-        p.line(data.srs_fn, data.srs_gs[channel_idx], legend = data._labels[channel_idx])
+        p3.line(data.srs_fn, data.srs_gs[channel_idx], legend = data._labels[channel_idx],
+                color=cnames.keys()[channel_idx])
         bk.hold()
-    bk.show(p)
+
+    # Show all figures
+    bk.show(bk.VBox(bk.HBox(p1, p2), p3))
+    # bk.show(p1)
