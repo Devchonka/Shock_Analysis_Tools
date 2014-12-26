@@ -8,14 +8,13 @@ import file_operations as fo
 import Smallwood as sm
 import plotting
 
-
 def main():
     fname = '3rdFireTestSet.hdf5'
     data = fo.Data()  # create data object that will keep all variables from file, raw and processed
     fo.readFile(fname, data)  # add raw accel readings and time into object
 
-    data.srs_fn = sm.get_fn()  # add freq list into object
-    data.srs_gs = sm.smallwood(data._time_data, data.srs_fn)  # add srs data into obj
+    sm.get_fn(data)  # add freq list into object
+    sm.smallwood(data)  # add srs data into obj
 
     plotting.bokeh_html(data)
 
