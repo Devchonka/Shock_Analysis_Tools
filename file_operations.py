@@ -3,6 +3,8 @@
 # TO DO:
 # Do I need a class destructor to free memory ?
 
+import plot_helper as ph
+import numpy as np
 
 def readFile(filename, data):
     import h5py
@@ -13,7 +15,16 @@ def readFile(filename, data):
     data._labels = f['/dru/capture/labels'][()]
     data._sample_rate = int(f['/dru/capture/rdt/sample_rate'][()])
     data._pga_gain_code = f['/dru/capture/rdt/pga_gain_code'][()]
+
+    # data.raw_volts = [[] for x in xrange(24)]
+    data.raw_volts = []
+    for ch_idx in range(24):
+        data.raw_volts.append(ph.counts_to_volts(data._time_data[ch_idx+1],data._pga_gain_code))
     # f.close() #- cannot close till end of execution
+
+    import matplotlib.pyplot as plt
+    plt.plot(data._time_data[0], data.raw_volts[0])
+    plt.show()
 
 
 class Data:

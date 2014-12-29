@@ -62,7 +62,10 @@ def smallwood(data):  # input is nxm 2D array, where first row is time and the r
         num = [b1[freq_idx], b2[freq_idx], b3[freq_idx]]
         den = [1, a1[freq_idx], a2[freq_idx]]
 
-        data.tf.append(control.tf(num, den))
+        # data.tf.append(control.tf(num, den))
+        # data.tf.append(sc.lti(num, den))
+        data.tf.append(control.tf(num, den, dt))
+
 
         for channel in range(24):  # primary response
             y_response[channel] = sc.filtfilt(num, den, yy[channel])
