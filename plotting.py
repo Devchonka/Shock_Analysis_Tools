@@ -15,7 +15,11 @@ def bokeh_html(data):
     # PYTHON FIGURES
     # Figure 1 : Transfer functions, constant per freq
 
-    control.bode(data.tf, data.srs_fn, dB=1, Hz=1) # how to get axes handles and reset xlim on both subplots?
+    ax = control.bode(data.tf, data.srs_fn, dB=True, Hz=True) # how to get axes handles and reset xlim on both subplots?
+
+    import pdb
+    pdb.set_trace()
+
     plt.xlim(min(data.srs_fn), max(data.srs_fn))
 
     #    plt.hold()
@@ -60,5 +64,5 @@ def bokeh_html(data):
         bk.hold()
 
     # Show all figures
-    bk.show(bk.VBox(bk.HBox(p1, p2), p3))
-    # plt.show()
+    # bk.show(bk.VBox(bk.HBox(p1, p2), p3))
+    plt.show()

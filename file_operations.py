@@ -22,10 +22,6 @@ def readFile(filename, data):
         data.raw_volts.append(ph.counts_to_volts(data._time_data[ch_idx+1],data._pga_gain_code))
     # f.close() #- cannot close till end of execution
 
-    import matplotlib.pyplot as plt
-    plt.plot(data._time_data[0], data.raw_volts[0])
-    plt.show()
-
 
 class Data:
     # constructor
