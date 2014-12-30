@@ -33,4 +33,11 @@ class Data:
         self._labels = labels
         self._sample_rate = sample_rate
         self._pga_gain_code = pga_gain_code
-        print "Data object created"
+
+
+class ShockDetails:
+    def __init__(self,name,f,srs_data, srs_data_interp):
+        self.name = name
+        self.f = f
+        self.srs_data = srs_data
+        self.srs_data_interp = srs_data_interp

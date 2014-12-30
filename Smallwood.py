@@ -1,10 +1,16 @@
 # Smallwood algorithm for SRS
 # Code based on "An Improved Recursive Formula For Calculating Shock Response Spectra" b David O Smallwood
+# Module also contains frequency related functions
+
 from __future__ import division
 import math
 import numpy as np
 import scipy.signal as sc
 import control
+import file_operations as fo
+import Smallwood as sm
+import plotting
+import scipy.interpolate as si
 
 
 def get_fn(data):
@@ -14,6 +20,42 @@ def get_fn(data):
     n = math.ceil(math.log((fn_max / fn_min), 2) / octave)
     data.srs_fn = fn_min * 2 ** ( octave * np.arange(0.0, n, 1.0))
 
+
+# def get_dB_lines(data):
+    # data.spec_interp_dB = 20 * math.log10(data.spec_details)
+
+def extrap(x, xp, yp):  # function to linearly extrapolate outside bounds range
+
+    y = np.interp(x, xp, yp)
+    for i in range(len(x)):
+        if x[i] < xp[0]:
+            y[i] = yp[0] + (x[i]-xp[0]) * (yp[0]-yp[1]) / (xp[0]-xp[1])
+        elif x[i] > xp[-1]:
+            y[i]= yp[-1] + (x[i]-xp[-1])*(yp[-1]-yp[-2])/(xp[-1]-xp[-2])
+
+    return y
+
+
+def shock_levels(data):
+
+    lvl = [[200, 4000, 10000], [140, 4200, 4200]]
+
+    srs_data_interp_db = extrap([20 * i for i in [math.log10(i) for i in data.srs_fn]],  # all 3 vec same as matlab
+                             [20 * i for i in [math.log10(i) for i in lvl[0]]],
+                             [20 * i for i in [math.log10(i) for i in lvl[1]]])
+
+    srs_data_interp = [10 ** i for i in [i / 20 for i in srs_data_interp_db]]
+
+    shock_details = fo.ShockDetails('Level 1', lvl[0], lvl[1], srs_data_interp)
+
+
+    data.spec_interp_db = [20 * i for i in [np.log10(i) for i in shock_details.srs_data_interp]]
+
+
+    data.spec_interp_plus9dB = [10 ** i1 for i1 in [i / 20 for i in [i2 + 9 for i2 in data.spec_interp_db]]]
+    data.spec_interp_plus6dB = [10 ** i1 for i1 in [i / 20 for i in [i2 + 6 for i2 in data.spec_interp_db]]]
+    data.spec_interp_minus3dB = [10 ** i1 for i1 in [i / 20 for i in [i2 - 3 for i2 in data.spec_interp_db]]]
+    data.spec_interp_minus6dB = [10 ** i1 for i1 in [i / 20 for i in [i2 - 6 for i2 in data.spec_interp_db]]]
 
 
 def smallwood(data):  # input is nxm 2D array, where first row is time and the rest are accel readings
@@ -27,8 +69,8 @@ def smallwood(data):  # input is nxm 2D array, where first row is time and the r
     zeros = [0] * num_zeros
 
     yy = []  # create unfiltered response list of lists, append zeros for filtfilt
-    for channel in range(1, 25):  # copy row 1-24 of data, append zeros to each row
-        yy.append((list(data._time_data[channel]) + list(zeros)))
+    for channel in range(24):  # copy row 1-24 of data, append zeros to each row
+        yy.append((list(data.raw_volts[channel]) + list(zeros)))
 
 
     zeta = 0.05  # aka Q = 10

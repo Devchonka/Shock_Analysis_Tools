@@ -17,9 +17,6 @@ def bokeh_html(data):
 
     ax = control.bode(data.tf, data.srs_fn, dB=True, Hz=True) # how to get axes handles and reset xlim on both subplots?
 
-    import pdb
-    pdb.set_trace()
-
     plt.xlim(min(data.srs_fn), max(data.srs_fn))
 
     #    plt.hold()
@@ -62,7 +59,11 @@ def bokeh_html(data):
         p3.line(data.srs_fn, data.srs_gs[channel_idx], legend = data._labels[channel_idx],
                 color=cnames.keys()[channel_idx])
         bk.hold()
+    p3.line(data.srs_fn, data.spec_interp_plus9dB, color = 'black')
+    p3.line(data.srs_fn, data.spec_interp_plus6dB, color = 'black')
+    p3.line(data.srs_fn, data.spec_interp_minus3dB, color = 'black')
+    p3.line(data.srs_fn, data.spec_interp_minus6dB, color = 'black')
 
     # Show all figures
-    # bk.show(bk.VBox(bk.HBox(p1, p2), p3))
-    plt.show()
+    bk.show(bk.VBox(bk.HBox(p1, p2), p3))
+    # plt.show()
