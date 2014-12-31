@@ -7,7 +7,7 @@ import math
 import numpy as np
 import scipy.signal as sc
 import control
-import file_operations as fo
+import data_manip as fo
 import Smallwood as sm
 import plotting
 import scipy.interpolate as si
@@ -73,6 +73,10 @@ def smallwood(data):  # input is nxm 2D array, where first row is time and the r
         yy.append((list(data.raw_volts[channel]) + list(zeros)))
 
 
+    # import matplotlib.pyplot as plt
+    # plt.plot(range(len(yy[0])),yy[0])
+    # plt.show()
+
     zeta = 0.05  # aka Q = 10
 
     srs_resp = []
@@ -94,26 +98,19 @@ def smallwood(data):  # input is nxm 2D array, where first row is time and the r
         S = E * math.sin(K)
         S_p = S / K
 
-        a1.append(- 2 * C)
-        a2.append(E**2)
+        a1.append(2 * C)
+        a2.append(- E**2)
         b1.append(1 - S_p)
         b2.append(2 * (S_p - C))
         b3.append(E**2 - S_p)
 
         # transfer functions
         num = [b1[freq_idx], b2[freq_idx], b3[freq_idx]]
-        den = [1, a1[freq_idx], a2[freq_idx]]
-
-        # data.tf.append(control.tf(num, den))
-        # data.tf.append(sc.lti(num, den))
-        data.tf.append(control.tf(num, den, dt))
-
+        den = [1, -a1[freq_idx], -a2[freq_idx]]
 
         for channel in range(24):  # primary response
-            y_response[channel] = sc.filtfilt(num, den, yy[channel])
+            y_response[channel] = sc.lfilter(num,den,yy[channel])
 
-            # pri_max[channel].append(max(0, max(y_response[channel])))
-            # pri_min[channel].append(abs(min(0, min(y_response[channel]))))
             pri_max = max(0, max(y_response[channel]))
             pri_min = abs(min(0, min(y_response[channel])))
             pri_abs[channel].append(max(pri_max, pri_min))

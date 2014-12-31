@@ -1,13 +1,10 @@
 # Module for making plots
 
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib.colors import cnames
 import bokeh.plotting as bk
+import bokeh.objects as bo
 import control
-import plot_helper
-
-# http://bokeh.pydata.org/docs/user_guide/charts.html
 
 def bokeh_html(data):
     plt.close("all")
@@ -18,8 +15,6 @@ def bokeh_html(data):
     ax = control.bode(data.tf, data.srs_fn, dB=True, Hz=True) # how to get axes handles and reset xlim on both subplots?
 
     plt.xlim(min(data.srs_fn), max(data.srs_fn))
-
-    #    plt.hold()
 
     # plt.legend(data.srs_fn)
 
@@ -53,7 +48,7 @@ def bokeh_html(data):
         tools="pan,box_zoom,reset, previewsave, resize",
         y_axis_type="log", x_axis_type="log",
         x_mapper_type="log", y_mapper_type="log",
-        title="Testing 1 2 3", x_axis_label='Frequency (Hz)', y_axis_label='SRS (gs)')
+        title="Shock Response Spectrum (SRS)", x_axis_label='Frequency (Hz)', y_axis_label='Acceleration (gs)')
 
     for channel_idx in range(24):
         p3.line(data.srs_fn, data.srs_gs[channel_idx], legend = data._labels[channel_idx],
@@ -63,6 +58,9 @@ def bokeh_html(data):
     p3.line(data.srs_fn, data.spec_interp_plus6dB, color = 'black')
     p3.line(data.srs_fn, data.spec_interp_minus3dB, color = 'black')
     p3.line(data.srs_fn, data.spec_interp_minus6dB, color = 'black')
+
+    p3.x_range = bo.Range1d(start=10e2, end=10e5)
+    bk.xaxis().bounds = [10e2, 10e5]
 
     # Show all figures
     bk.show(bk.VBox(bk.HBox(p1, p2), p3))

@@ -1,10 +1,7 @@
-# Functions to manipulate original data file and class definition for data object
+# PART 1: Functions to manipulate original data file and class definition for data object
+# PART 2: Function helpers for plotting
 
-# TO DO:
-# Do I need a class destructor to free memory ?
-
-import plot_helper as ph
-import numpy as np
+# PART 1: Functions to manipulate original data file and class definition for data object
 
 def readFile(filename, data):
     import h5py
@@ -19,7 +16,7 @@ def readFile(filename, data):
     # data.raw_volts = [[] for x in xrange(24)]
     data.raw_volts = []
     for ch_idx in range(24):
-        data.raw_volts.append(ph.counts_to_volts(data._time_data[ch_idx+1],data._pga_gain_code))
+        data.raw_volts.append(counts_to_volts(data._time_data[ch_idx+1],data._pga_gain_code))
     # f.close() #- cannot close till end of execution
 
 
@@ -41,3 +38,12 @@ class ShockDetails:
         self.f = f
         self.srs_data = srs_data
         self.srs_data_interp = srs_data_interp
+
+
+# PART 2: Function helpers for plotting
+
+def counts_to_volts (x, pga_gain, xducer_scale=0.0005):  # xducer_scale is 0.5 mV/g, temporary per Joe, Mark,Dave 3-27-14
+    VREF = 5
+    CODES = 32768  # 2^16 /2
+    FIXGAIN = 1.75  # Salen-Key filter gain
+    return VREF * (x / CODES / FIXGAIN / pga_gain / xducer_scale)
