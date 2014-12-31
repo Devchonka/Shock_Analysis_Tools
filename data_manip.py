@@ -2,9 +2,25 @@
 # PART 2: Function helpers for plotting
 
 # PART 1: Functions to manipulate original data file and class definition for data object
+import h5py
+
+
+class Data:
+
+    def __init__(self):
+        self._sample_rate = 0
+        self._pga_gain_code = 0
+        self._time_data, self._labels, self.raw_volts, self.spec_interp_db, \
+        self.spec_interp_plus9dB, self.spec_interp_plus6dB, self.spec_interp_minus3dB, \
+        self.spec_interp_minus6dB, self.srs_fn = ([] for i in range(9))
+        self.hi()
+
+    def hi(self):
+        print "Hi!"
+
 
 def readFile(filename, data):
-    import h5py
+    print "Data object called by read file"
 
     f = h5py.File(filename, 'r')
 
@@ -13,23 +29,8 @@ def readFile(filename, data):
     data._sample_rate = int(f['/dru/capture/rdt/sample_rate'][()])
     data._pga_gain_code = f['/dru/capture/rdt/pga_gain_code'][()]
 
-    # data.raw_volts = [[] for x in xrange(24)]
-    data.raw_volts = []
     for ch_idx in range(24):
         data.raw_volts.append(counts_to_volts(data._time_data[ch_idx+1],data._pga_gain_code))
-    # f.close() #- cannot close till end of execution
-
-
-class Data:
-    # constructor
-    def __init__(self, time_data=None, labels=None, sample_rate=0, pga_gain_code=0):
-        if time_data is None:
-            time_data = []
-            labels = []
-        self._time_data = time_data
-        self._labels = labels
-        self._sample_rate = sample_rate
-        self._pga_gain_code = pga_gain_code
 
 
 class ShockDetails:
@@ -38,7 +39,6 @@ class ShockDetails:
         self.f = f
         self.srs_data = srs_data
         self.srs_data_interp = srs_data_interp
-
 
 # PART 2: Function helpers for plotting
 

@@ -6,13 +6,10 @@ from __future__ import division
 import math
 import numpy as np
 import scipy.signal as sc
-import control
 import data_manip as fo
-import Smallwood as sm
-import plotting
-import scipy.interpolate as si
 
 
+# Plugs in frequency vector into data obj
 def get_fn(data):
     octave = 1 / 12  # a factor of 2 in frequency (next freq is twice prev) - reduces coupling of test support and electronics
     fn_min = 100
@@ -21,10 +18,8 @@ def get_fn(data):
     data.srs_fn = fn_min * 2 ** ( octave * np.arange(0.0, n, 1.0))
 
 
-# def get_dB_lines(data):
-    # data.spec_interp_dB = 20 * math.log10(data.spec_details)
-
-def extrap(x, xp, yp):  # function to linearly extrapolate outside bounds range
+ # Function to linearly extrapolate outside bounds range
+def extrap(x, xp, yp):
 
     y = np.interp(x, xp, yp)
     for i in range(len(x)):
@@ -36,6 +31,7 @@ def extrap(x, xp, yp):  # function to linearly extrapolate outside bounds range
     return y
 
 
+# Function to return margins to spec in dB
 def shock_levels(data):
 
     lvl = [[200, 4000, 10000], [140, 4200, 4200]]
@@ -48,17 +44,16 @@ def shock_levels(data):
 
     shock_details = fo.ShockDetails('Level 1', lvl[0], lvl[1], srs_data_interp)
 
-
+    # Calculations for the level selected and the -3,-6,+6,+9 dB margin to it
     data.spec_interp_db = [20 * i for i in [np.log10(i) for i in shock_details.srs_data_interp]]
-
-
     data.spec_interp_plus9dB = [10 ** i1 for i1 in [i / 20 for i in [i2 + 9 for i2 in data.spec_interp_db]]]
     data.spec_interp_plus6dB = [10 ** i1 for i1 in [i / 20 for i in [i2 + 6 for i2 in data.spec_interp_db]]]
     data.spec_interp_minus3dB = [10 ** i1 for i1 in [i / 20 for i in [i2 - 3 for i2 in data.spec_interp_db]]]
     data.spec_interp_minus6dB = [10 ** i1 for i1 in [i / 20 for i in [i2 - 6 for i2 in data.spec_interp_db]]]
 
 
-def smallwood(data):  # input is nxm 2D array, where first row is time and the rest are accel readings
+# Smallwood Algorithm
+def smallwood(data):
     t_min = data._time_data[0, 0]
     t_max = data._time_data[0, -1]
     num_pts = len(data._time_data[0])  # number time data points
@@ -72,18 +67,10 @@ def smallwood(data):  # input is nxm 2D array, where first row is time and the r
     for channel in range(24):  # copy row 1-24 of data, append zeros to each row
         yy.append((list(data.raw_volts[channel]) + list(zeros)))
 
-
-    # import matplotlib.pyplot as plt
-    # plt.plot(range(len(yy[0])),yy[0])
-    # plt.show()
-
     zeta = 0.05  # aka Q = 10
 
     srs_resp = []
-    data.tf = []
     a1, a2, b1, b2, b3 = ([] for i in range(5))
-
-    # pri_max, pri_min, pri_abs = ([[] for x in xrange(24)] for i in range(3))
 
     pri_abs = [[] for x in xrange(24)]
     y_response = [[] for x in xrange(24)]
@@ -104,7 +91,7 @@ def smallwood(data):  # input is nxm 2D array, where first row is time and the r
         b2.append(2 * (S_p - C))
         b3.append(E**2 - S_p)
 
-        # transfer functions
+        # transfer functions, each one evaluated at a certain freq
         num = [b1[freq_idx], b2[freq_idx], b3[freq_idx]]
         den = [1, -a1[freq_idx], -a2[freq_idx]]
 
