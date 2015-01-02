@@ -26,7 +26,7 @@ def bokeh_html(data):
             plot_width=500, plot_height=500, outline_line_color="red",
             tools="pan,box_zoom,reset,previewsave,resize",
             title="Another Figure")
-
+    x_range = bo.Range1d(start=10e2, end=10e5)
     # Figure 3: SRS Frequency Response
     p3 = bk.figure(
         plot_width=1000, plot_height=1000,  # width and height of the entire plot in pixels, including border space
@@ -34,8 +34,10 @@ def bokeh_html(data):
         tools="pan,box_zoom,reset, previewsave, resize",
         y_axis_type="log", x_axis_type="log",
         # x_mapper_type="log", y_mapper_type="log",
-        x_range=[10e2, 10e5],
+        #x_range=[10e2, 10e5],
+        x_range=x_range,
         title="Shock Response Spectrum (SRS)", x_axis_label='Frequency (Hz)', y_axis_label='Acceleration (gs)')
+
 
     for channel_idx in range(24):
         p3.line(data.srs_fn, data.srs_gs[channel_idx], legend = data._labels[channel_idx],
@@ -50,7 +52,9 @@ def bokeh_html(data):
     p3.line(data.srs_fn, data.spec_interp_minus3dB, color = 'black')
     p3.line(data.srs_fn, data.spec_interp_minus6dB, color = 'black')
 
-    p3.x_range = bo.Range1d(start=10e2, end=10e5)
+
+    # p3.xaxis[0].bounds = [0,10**3]
+    #p3.x_range = bo.Range1d(start=10e2, end=10e5)
     # p3.xaxis.bounds = [10e2, 10e5]
 
     bk.show(bk.VBox(bk.HBox(p1, p2), p3))
