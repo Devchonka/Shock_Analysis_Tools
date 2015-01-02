@@ -4,7 +4,6 @@ import data_manip as dm
 import Smallwood as sm
 import plotting
 
-
 def main():
     # Read file and store data in "data" object
     fname = 'DRU_ISDLA1_SPTFire.hdf5'
