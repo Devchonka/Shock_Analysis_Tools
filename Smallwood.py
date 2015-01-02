@@ -1,56 +1,8 @@
 # Smallwood algorithm for SRS
 # Code based on "An Improved Recursive Formula For Calculating Shock Response Spectra" b David O Smallwood
-# Module also contains frequency related functions
 
-from __future__ import division
 import math
-import numpy as np
 import scipy.signal as sc
-import data_manip as fo
-
-
-# Plugs in frequency vector into data obj
-def get_fn(data):
-    octave = 1 / 12  # a factor of 2 in frequency (next freq is twice prev) - reduces coupling of test support and electronics
-    fn_min = 100
-    fn_max = 100000
-    n = math.ceil(math.log((fn_max / fn_min), 2) / octave)
-    data.srs_fn = fn_min * 2 ** ( octave * np.arange(0.0, n, 1.0))
-
-
- # Function to linearly extrapolate outside bounds range
-def extrap(x, xp, yp):
-
-    y = np.interp(x, xp, yp)
-    for i in range(len(x)):
-        if x[i] < xp[0]:
-            y[i] = yp[0] + (x[i]-xp[0]) * (yp[0]-yp[1]) / (xp[0]-xp[1])
-        elif x[i] > xp[-1]:
-            y[i]= yp[-1] + (x[i]-xp[-1])*(yp[-1]-yp[-2])/(xp[-1]-xp[-2])
-
-    return y
-
-
-# Function to return margins to spec in dB
-def shock_levels(data):
-
-    lvl = [[200, 4000, 10000], [140, 4200, 4200]]
-
-    srs_data_interp_db = extrap([20 * i for i in [math.log10(i) for i in data.srs_fn]],  # all 3 vec same as matlab
-                             [20 * i for i in [math.log10(i) for i in lvl[0]]],
-                             [20 * i for i in [math.log10(i) for i in lvl[1]]])
-
-    srs_data_interp = [10 ** i for i in [i / 20 for i in srs_data_interp_db]]
-
-    shock_details = fo.ShockDetails('Level 1', lvl[0], lvl[1], srs_data_interp)
-
-    # Calculations for the level selected and the -3,-6,+6,+9 dB margin to it
-    data.spec_interp_db = [20 * i for i in [np.log10(i) for i in shock_details.srs_data_interp]]
-    data.spec_interp_plus9dB = [10 ** i1 for i1 in [i / 20 for i in [i2 + 9 for i2 in data.spec_interp_db]]]
-    data.spec_interp_plus6dB = [10 ** i1 for i1 in [i / 20 for i in [i2 + 6 for i2 in data.spec_interp_db]]]
-    data.spec_interp_minus3dB = [10 ** i1 for i1 in [i / 20 for i in [i2 - 3 for i2 in data.spec_interp_db]]]
-    data.spec_interp_minus6dB = [10 ** i1 for i1 in [i / 20 for i in [i2 - 6 for i2 in data.spec_interp_db]]]
-
 
 # Smallwood Algorithm
 def smallwood(data):
@@ -86,17 +38,17 @@ def smallwood(data):
         S_p = S / K
 
         a1.append(2 * C)
-        a2.append(- E**2)
+        a2.append(- E ** 2)
         b1.append(1 - S_p)
         b2.append(2 * (S_p - C))
-        b3.append(E**2 - S_p)
+        b3.append(E ** 2 - S_p)
 
         # transfer functions, each one evaluated at a certain freq
         num = [b1[freq_idx], b2[freq_idx], b3[freq_idx]]
         den = [1, -a1[freq_idx], -a2[freq_idx]]
 
         for channel in range(24):  # primary response
-            y_response[channel] = sc.lfilter(num,den,yy[channel])
+            y_response[channel] = sc.lfilter(num, den, yy[channel])
 
             pri_max = max(0, max(y_response[channel]))
             pri_min = abs(min(0, min(y_response[channel])))
