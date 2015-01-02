@@ -13,10 +13,6 @@ class Data:
         self._time_data, self._labels, self.raw_volts, self.spec_interp_db, \
         self.spec_interp_plus9dB, self.spec_interp_plus6dB, self.spec_interp_minus3dB, \
         self.spec_interp_minus6dB, self.srs_fn = ([] for i in range(9))
-        self.hi()
-
-    def hi(self):
-        print "Hi!"
 
 
 def readFile(filename, data):
