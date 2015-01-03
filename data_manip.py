@@ -16,7 +16,7 @@ class Data(object):
         self._pga_gain_code = f['/dru/capture/rdt/pga_gain_code'][()]
 
         self.raw_volts, self.spec_interp_db, self.spec_interp_plus9dB, self.spec_interp_plus6dB, \
-        self.spec_interp_minus3dB, self.spec_interp_minus6dB = ([] for i in range(6))
+        self.spec_interp_minus3dB, self.spec_interp_minus6dB, self.srs_gs = ([] for i in range(7))
 
         self.get_fn()
 

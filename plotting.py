@@ -6,6 +6,11 @@ from matplotlib.colors import cnames
 import bokeh.plotting as bk
 import bokeh.objects as bo
 
+# for p4
+from collections import OrderedDict
+import numpy as np
+from bokeh.models import HoverTool
+
 
 def bokeh_html(data):
     bk.output_file("test.html", title="SRS test plots")
@@ -32,10 +37,8 @@ def bokeh_html(data):
     p3 = bk.figure(
         plot_width=1000, plot_height=1000,  # width and height of the entire plot in pixels, including border space
         outline_line_color="red",
-        tools="pan,box_zoom,reset, previewsave, resize",
+        tools=TOOLS,
         y_axis_type="log", x_axis_type="log",
-        # x_mapper_type="log", y_mapper_type="log",
-        # x_range=[10e2, 10e5],
         x_range=x_range1,
         title="Shock Response Spectrum (SRS)", x_axis_label='Frequency (Hz)', y_axis_label='Acceleration (gs)')
 
@@ -57,4 +60,53 @@ def bokeh_html(data):
     # p3.x_range = bo.Range1d(start=10e2, end=10e5)
     # p3.xaxis.bounds = [10e2, 10e5]
 
-    bk.show(bk.VBox(bk.HBox(p1, p2), p3))
+
+# Figure 4: SRS Freq content per accel
+
+    # Read in the data with pandas. Convert the year column to string
+
+    freqs = [round(i) for i in data.srs_fn]
+    channels = [str(i) for i in range(1,25)]
+
+    colors = [
+        "#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce",
+        "#ddb7b1", "#cc7878", "#933b41", "#550b1d"
+    ]
+
+    color = []
+    rate = []
+    for fn_idx in range(len(freqs)):
+        for ch_idx in range(24):
+            srs_rate = data.srs_gs[ch_idx][fn_idx]
+            rate.append(srs_rate)
+            color.append(colors[min(int(srs_rate)-2, 8)])
+
+    source = bk.ColumnDataSource(
+        data=dict(x = freqs, ch = channels, color=color, rate=rate)
+    )
+
+    TOOLS = "resize,hover,save"
+
+    p4 = bk.figure(title="Frequency data per Channel",
+        #x_range=freqs, y_range=list(reversed(channels)),
+        x_axis_location="above", plot_width=1100, plot_height=600,
+        toolbar_location="left", tools=TOOLS)
+
+    p4.rect(freqs, channels, 1, 1, source=source,
+        color="color", line_color=None)
+
+    p4.grid.grid_line_color = None
+    p4.axis.axis_line_color = None
+    p4.axis.major_tick_line_color = None
+    p4.axis.major_label_text_font_size = "5pt"
+    p4.axis.major_label_standoff = 0
+    p4.xaxis.major_label_orientation = np.pi/3
+
+    hover = p4.select(dict(type=HoverTool))
+    hover.snap_to_data = False
+    hover.tooltips = OrderedDict([
+        ('channel', '@ch @freqs'),
+        ('rate', '@srs_rate'),
+    ])
+
+    bk.show(bk.VBox(bk.HBox(p1, p2), p3, p4))
