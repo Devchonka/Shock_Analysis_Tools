@@ -18,7 +18,7 @@ class Data(object):
         self.raw_volts, self.spec_interp_db, self.spec_interp_plus9dB, self.spec_interp_plus6dB, \
         self.spec_interp_minus3dB, self.spec_interp_minus6dB, self.srs_gs = ([] for i in range(7))
 
-        self.get_fn()
+        self.srs_fn = self.get_fn()
 
         for ch_idx in range(24):
             self.raw_volts.append(self.counts_to_volts(self._time_data[ch_idx + 1], self._pga_gain_code))
@@ -37,7 +37,7 @@ class Data(object):
         fn_min = 100
         fn_max = 100000
         n = math.ceil(math.log((fn_max / fn_min), 2) / octave)
-        self.srs_fn = fn_min * 2 ** ( octave * np.arange(0.0, n, 1.0))
+        return fn_min * 2 ** ( octave * np.arange(0.0, n, 1.0))
 
 
 # Shock details class holds data about shock margin and shock preferences
