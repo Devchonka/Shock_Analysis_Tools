@@ -23,13 +23,15 @@ class Data(object):
         for ch_idx in range(24):
             self.raw_volts.append(self.counts_to_volts(self._time_data[ch_idx + 1], self._pga_gain_code))
 
-    def counts_to_volts(self, x, pga_gain, xducer_scale=0.0005):  # xducer_scale is 0.5 mV/g, temporary per Joe, Mark,Dave 3-27-14
+    def counts_to_volts(self, x, pga_gain,
+                        xducer_scale=0.0005):  # xducer_scale is 0.5 mV/g, temporary per Joe, Mark,Dave 3-27-14
         VREF = 5
         CODES = 32768  # 2^16 /2
         FIXGAIN = 1.75  # Salen-Key filter gain
         return VREF * (x / CODES / FIXGAIN / pga_gain / xducer_scale)
 
         # Plugs in frequency vector into data obj
+
     def get_fn(self):
         octave = 1 / 12  # a factor of 2 in frequency (next freq is twice prev) - reduces coupling of test support and electronics
         fn_min = 100
@@ -46,8 +48,8 @@ class ShockDetails(object):
             lvl = [[200, 4000, 10000], [140, 4200, 4200]]
 
         srs_data_interp_db = self.extrap([20 * i for i in [math.log10(i) for i in data.srs_fn]],
-                                            [20 * i for i in [math.log10(i) for i in lvl[0]]],
-                                            [20 * i for i in [math.log10(i) for i in lvl[1]]])
+                                         [20 * i for i in [math.log10(i) for i in lvl[0]]],
+                                         [20 * i for i in [math.log10(i) for i in lvl[1]]])
         self.srs_data_interp = [10 ** i for i in [i / 20 for i in srs_data_interp_db]]
         self.name = name
         self.f = lvl[0]
@@ -61,8 +63,8 @@ class ShockDetails(object):
         data.spec_interp_minus6dB = [10 ** i1 for i1 in [i / 20 for i in [i2 - 6 for i2 in data.spec_interp_db]]]
 
 
-# Function to linearly extrapolate outside bounds range
-    def extrap(self,x, xp, yp):
+    # Function to linearly extrapolate outside bounds range
+    def extrap(self, x, xp, yp):
         y = np.interp(x, xp, yp)
         for i in range(len(x)):
             if x[i] < xp[0]:

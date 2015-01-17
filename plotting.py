@@ -5,8 +5,7 @@
 from matplotlib.colors import cnames
 import bokeh.plotting as bk
 import bokeh.objects as bo
-import pandas as pd
-import numpy as np
+import math
 
 # for p4
 from collections import OrderedDict
@@ -44,18 +43,21 @@ def bokeh_html(data):
         x_range=x_range1,
         title="Shock Response Spectrum (SRS)", x_axis_label='Frequency (Hz)', y_axis_label='Acceleration (gs)')
 
-    for channel_idx in range(24):
-        p3.line(data.srs_fn, data.srs_gs[channel_idx], legend=data._labels[channel_idx],
-                line_alpha=0.8, line_width=1.5, min_border=2,
-                color=cnames.keys()[channel_idx])
-        bk.hold()
-
-    p3.grid.grid_line_color = "grey"
-
-    p3.line(data.srs_fn, data.spec_interp_plus9dB, color='black', line_dash=[4, 4])
-    p3.line(data.srs_fn, data.spec_interp_plus6dB, color='black', line_dash=[4, 4])
-    p3.line(data.srs_fn, data.spec_interp_minus3dB, color='black', line_dash=[4, 4])
-    p3.line(data.srs_fn, data.spec_interp_minus6dB, color='black', line_dash=[4, 4])
+    # import pdb
+    # pdb.set_trace()
+    #
+    # for channel_idx in range(24):
+    #     p3.line(data.srs_fn, data.srs_gs[channel_idx], legend=data._labels[channel_idx+1],
+    #             line_alpha=0.8, line_width=1.5, min_border=2,
+    #             color=cnames.keys()[channel_idx])
+    #     bk.hold()
+    #
+    # p3.grid.grid_line_color = "grey"
+    #
+    # p3.line(data.srs_fn, data.spec_interp_plus9dB, color='black', line_dash=[4, 4])
+    # p3.line(data.srs_fn, data.spec_interp_plus6dB, color='black', line_dash=[4, 4])
+    # p3.line(data.srs_fn, data.spec_interp_minus3dB, color='black', line_dash=[4, 4])
+    # p3.line(data.srs_fn, data.spec_interp_minus6dB, color='black', line_dash=[4, 4])
 
 
     # p3.xaxis[0].bounds = [0,10**3]
@@ -65,62 +67,64 @@ def bokeh_html(data):
 
     # Figure 4: SRS Freq content per accel
 
-
     colors = [
         "#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce",
         "#ddb7b1", "#cc7878", "#933b41", "#550b1d"
-    ]
+        ]
 
-    color =[[] for i in range(24)]
+    freq = []
+    channel = []
+    color = []
+    rate = []
+    largest_gs = 0
+    smallest_gs = 10000
+
     for ch_idx in range(24):
         for fn_idx in range(120):
-            color[ch_idx].append(colors[min(int(data.srs_gs[ch_idx][fn_idx]) - 2, 8)])
+            freq.append(data.srs_fn[fn_idx])
+            rate.append(data.srs_gs[ch_idx][fn_idx])
+            channel.append(ch_idx+1)
+            if largest_gs < data.srs_gs[ch_idx][fn_idx]:
+                largest_gs = data.srs_gs[ch_idx][fn_idx]
+            if smallest_gs > data.srs_gs[ch_idx][fn_idx]:
+                smallest_gs = data.srs_gs[ch_idx][fn_idx]
 
-    for x in range(len(data.srs_fn)):
-        df = pd.DataFrame(np.asarray(data.srs_gs).T.tolist(), index=data.srs_fn, columns=range(1, 25))
-    df['srs_fn'] = data.srs_fn
 
-    for x in range(len(data.srs_fn)):
-        df2 = pd.DataFrame(np.asarray(color).T.tolist(), index=data.srs_fn, columns=range(1, 25))
+    largest_gs_lg = math.log(largest_gs)
+    smallest_gs_lg = math.log(smallest_gs)
+    diff = largest_gs_lg-smallest_gs_lg
 
-#    df['color'] = df2
 
-    import pdb
-    pdb.set_trace()
+    for i in range(len(rate)):
+        color.append(colors[int((math.log(rate[i])-smallest_gs_lg) * 8 / diff)])
 
     source = bk.ColumnDataSource(
         data=dict(
-            freqs=df.iloc[1:24],  # x
-            channel=range(1, 25),  # y
-            color=df2,
-            rate=df['srs_fn'])
-        )
+            freq=[str(round(x, 1)) for x in freq],  # y
+            channel=channel,  # x
+            color=color,
+            rate=rate)
+    )
 
     TOOLS = "resize,hover,save"
 
-    channels = range(1,25)
-
     p4 = bk.figure(title="Frequency data per Channel",
-                   #y_range=list(reversed(channels)),
+                   x_range=[str(x) for x in range(1, 25)],
+                   y_range=[str(round(x, 1)) for x in list(reversed(data.srs_fn))],
+                   #y_range=[x for x in list(data.srs_fn)],
                    outline_line_color="red",
-                   x_axis_type="log",
-                   x_axis_location="above", plot_width=1100, plot_height=600,
+                   x_axis_location="above", plot_width=1100, plot_height=900,
                    toolbar_location="left", tools=TOOLS)
 
+    p4.rect("channel", "freq", 1, 1, source=source,
+            x_axis_location="above",
+            color="color",
+            line_color=None,
+            title="Freq vs Accel")
 
-
-    p4.rect("srs_gs", "srs_fn", 100, 1, source=source,
-     #x_range=weeks, y_range=list(reversed(days)),
-     x_axis_location="above",
-     color="color", line_color=None,
-     tools="resize,hover,previewsave", title="Freq vs Accel",
-     plot_width=900, plot_height=400, toolbar_location="left")
-
-
-
-    p4.grid.grid_line_color = None
-    p4.axis.axis_line_color = None
-    p4.axis.major_tick_line_color = None
+    p4.grid.grid_line_color = "black"
+    p4.axis.axis_line_color = "black"
+    p4.axis.major_tick_line_color = "black"
     p4.axis.major_label_text_font_size = "5pt"
     p4.axis.major_label_standoff = 0
     p4.xaxis.major_label_orientation = np.pi / 3
@@ -128,9 +132,9 @@ def bokeh_html(data):
     hover = p4.select(dict(type=HoverTool))
     hover.snap_to_data = False
     hover.tooltips = OrderedDict([
-        ('channel', '@ch @freqs'),
-        ('rate', '@srs_rate'),
+        ('channel', '@channel'),
+        ('freq', '@freq'),
+        ('rate', '@rate')
     ])
-
 
     bk.show(bk.VBox(bk.HBox(p1, p2), p3, p4))
