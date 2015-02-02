@@ -4,6 +4,7 @@ from __future__ import division
 import h5py
 import math
 import numpy as np
+import xlrd
 
 
 # Data class holds raw and processed shock data for plotting
@@ -44,8 +45,9 @@ class Data(object):
 class ShockDetails(object):
     def __init__(self, name, data):
 
-        if name == 'Level 1':
-            lvl = [[200, 4000, 10000], [140, 4200, 4200]]
+        lvl = self.get_shock_levels(name)
+        # if name == 'Level 1':
+            # lvl = [[200, 4000, 10000], [140, 4200, 4200]]
 
         srs_data_interp_db = self.extrap([20 * i for i in [math.log10(i) for i in data.srs_fn]],
                                          [20 * i for i in [math.log10(i) for i in lvl[0]]],
@@ -72,3 +74,15 @@ class ShockDetails(object):
             elif x[i] > xp[-1]:
                 y[i] = yp[-1] + (x[i] - xp[-1]) * (yp[-1] - yp[-2]) / (xp[-1] - xp[-2])
         return y
+    def get_shock_levels(self, name):  # For future : name should be used to search spreadsheet
+        path = "shock_levels.xlsx"
+        book = xlrd.open_workbook(path)
+        # print book.nsheets
+        # print book.sheet_names()
+        sheet = book.sheet_by_index(0)  # selecting first sheet in spreadsheet
+        #print first_sheet.row_values(0)
+        # cell = sheet.cell(0,0)
+        name = sheet.cell(0,0).value
+        lvl = [[sheet.cell(1,0).value, sheet.cell(2,0).value, sheet.cell(3,0).value],
+               [sheet.cell(1,1).value, sheet.cell(2,1).value, sheet.cell(3,1).value]]
+        return lvl

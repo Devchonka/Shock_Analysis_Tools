@@ -114,4 +114,4 @@ def bokeh_html(data):
         ('rate', '@rate')
     ])
 
-    bk.show(bk.VBox(p1, p2, p3))
+    # bk.show(bk.VBox(p1, p2, p3))
