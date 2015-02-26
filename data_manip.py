@@ -10,19 +10,24 @@ import xlrd
 # Data class holds raw and processed shock data for plotting
 class Data(object):
     def __init__(self, filename):
-        f = h5py.File(filename, 'r')
-        self._time_data = f['/dru/capture/data'][()]
-        self._labels = f['/dru/capture/labels'][()]
-        self._sample_rate = int(f['/dru/capture/rdt/sample_rate'][()])
-        self._pga_gain_code = f['/dru/capture/rdt/pga_gain_code'][()]
+        try:
+            f = h5py.File(filename, 'r')
+        except IOError:
+            print 'Error in opening file.'
+        else:
+            with f:
+                self._time_data = f['/dru/capture/data'][()]
+                self._labels = f['/dru/capture/labels'][()]
+                self._sample_rate = int(f['/dru/capture/rdt/sample_rate'][()])
+                self._pga_gain_code = f['/dru/capture/rdt/pga_gain_code'][()]
 
-        self.raw_volts, self.spec_interp_db, self.spec_interp_plus9dB, self.spec_interp_plus6dB, \
-            self.spec_interp_minus3dB, self.spec_interp_minus6dB, self.srs_gs = ([] for i in xrange(7))
+                self.raw_volts, self.spec_interp_db, self.spec_interp_plus9dB, self.spec_interp_plus6dB, \
+                self.spec_interp_minus3dB, self.spec_interp_minus6dB, self.srs_gs = ([] for i in xrange(7))
 
-        self.srs_fn = self.get_fn()
+                self.srs_fn = self.get_fn()
 
-        for ch_idx in xrange(24):
-            self.raw_volts.append(self.counts_to_volts(self._time_data[ch_idx + 1], self._pga_gain_code))
+                for ch_idx in xrange(len(self._labels) - 1):  # subtracting time label
+                    self.raw_volts.append(self.counts_to_volts(self._time_data[ch_idx + 1], self._pga_gain_code))
 
     def counts_to_volts(self, x, pga_gain,
                         xducer_scale=0.0005):  # xducer_scale is 0.5 mV/g, temporary per Joe, Mark,Dave 3-27-14
@@ -31,9 +36,9 @@ class Data(object):
         FIXGAIN = 1.75  # Salen-Key filter gain
         return VREF * (x / CODES / FIXGAIN / pga_gain / xducer_scale)
 
-        # Plugs in frequency vector into data obj
 
     def get_fn(self):
+        """Method generates frequency vector for data class"""
         octave = 1 / 12  # a factor of 2 in frequency (next freq is twice prev) - reduces coupling of test support and electronics
         fn_min = 100
         fn_max = 100000
@@ -41,13 +46,11 @@ class Data(object):
         return fn_min * 2 ** ( octave * np.arange(0.0, n, 1.0))
 
 
-# Shock details class holds data about shock margin and shock preferences
 class ShockDetails(object):
+    """Shock details class holds data about shock margin and shock preferences"""
     def __init__(self, name, data):
 
         lvl = self.get_shock_levels(name)
-        # if name == 'Level 1':
-            # lvl = [[200, 4000, 10000], [140, 4200, 4200]]
 
         srs_data_interp_db = self.extrap([20 * i for i in [math.log10(i) for i in data.srs_fn]],
                                          [20 * i for i in [math.log10(i) for i in lvl[0]]],
@@ -74,15 +77,16 @@ class ShockDetails(object):
             elif x[i] > xp[-1]:
                 y[i] = yp[-1] + (x[i] - xp[-1]) * (yp[-1] - yp[-2]) / (xp[-1] - xp[-2])
         return y
+
     def get_shock_levels(self, name):  # For future : name should be used to search spreadsheet
         path = "shock_levels.xlsx"
         book = xlrd.open_workbook(path)
         # print book.nsheets
         # print book.sheet_names()
         sheet = book.sheet_by_index(0)  # selecting first sheet in spreadsheet
-        #print first_sheet.row_values(0)
+        # print first_sheet.row_values(0)
         # cell = sheet.cell(0,0)
-        name = sheet.cell(0,0).value
-        lvl = [[sheet.cell(1,0).value, sheet.cell(2,0).value, sheet.cell(3,0).value],
-               [sheet.cell(1,1).value, sheet.cell(2,1).value, sheet.cell(3,1).value]]
+        name = sheet.cell(0, 0).value
+        lvl = [[sheet.cell(1, 0).value, sheet.cell(2, 0).value, sheet.cell(3, 0).value],
+               [sheet.cell(1, 1).value, sheet.cell(2, 1).value, sheet.cell(3, 1).value]]
         return lvl

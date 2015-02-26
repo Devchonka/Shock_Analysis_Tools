@@ -6,7 +6,6 @@ import scipy.signal as sc
 
 # Smallwood Algorithm
 def smallwood(data):
-
     len_ch_vec = len(data.raw_volts)
     len_freq_vec = len(data.srs_fn)
     t_min = data._time_data[0, 0]
