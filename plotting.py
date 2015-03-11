@@ -2,11 +2,10 @@
 
 from matplotlib.colors import cnames
 import bokeh.plotting as bk
-import bokeh.objects as bo
 import math
 
 from collections import OrderedDict
-from bokeh.models import HoverTool
+from bokeh.models import HoverTool, Range1d
 
 
 def bokeh_html(data):
@@ -45,7 +44,7 @@ def bokeh_html(data):
     p2.line(data.srs_fn, data.spec_interp_minus3dB, color='black', line_dash=[4, 4])
     p2.line(data.srs_fn, data.spec_interp_minus6dB, color='black', line_dash=[4, 4])
 
-    p2.x_range = bo.Range1d(start=10 ** 2, end=10 ** 5)
+    p2.x_range = Range1d(start=10 ** 2, end=10 ** 5)
 
     # Figure 3: SRS Freq content per accel
     colors = [

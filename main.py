@@ -7,7 +7,7 @@ import plotting
 
 def main():
     # Read file and store data in "data" object
-    fname = 'DRU_ISDLA1_SPTFire.hdf5'
+    fname = '3rdFireTestSet.hdf5'
     data = Data(fname)  # create data object that will keep all variables from file, raw and processed
 
     # Run smallwood algorithm to process data for SRS

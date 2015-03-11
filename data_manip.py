@@ -13,7 +13,7 @@ class Data(object):
         try:
             f = h5py.File(filename, 'r')
         except IOError:
-            print 'Error in opening file.'
+            print ('Error in opening file.')
         else:
             with f:
                 self._time_data = f['/dru/capture/data'][()]
@@ -22,11 +22,11 @@ class Data(object):
                 self._pga_gain_code = f['/dru/capture/rdt/pga_gain_code'][()]
 
                 self.raw_volts, self.spec_interp_db, self.spec_interp_plus9dB, self.spec_interp_plus6dB, \
-                self.spec_interp_minus3dB, self.spec_interp_minus6dB, self.srs_gs = ([] for i in xrange(7))
+                self.spec_interp_minus3dB, self.spec_interp_minus6dB, self.srs_gs = ([] for i in range(7))
 
                 self.srs_fn = self.get_fn()
 
-                for ch_idx in xrange(len(self._labels) - 1):  # subtracting time label
+                for ch_idx in range(len(self._labels) - 1):  # subtracting time label
                     self.raw_volts.append(self.counts_to_volts(self._time_data[ch_idx + 1], self._pga_gain_code))
 
     def counts_to_volts(self, x, pga_gain,
@@ -71,7 +71,7 @@ class ShockDetails(object):
     # Function to linearly extrapolate outside bounds range
     def extrap(self, x, xp, yp):
         y = np.interp(x, xp, yp)
-        for i in xrange(len(x)):
+        for i in range(len(x)):
             if x[i] < xp[0]:
                 y[i] = yp[0] + (x[i] - xp[0]) * (yp[0] - yp[1]) / (xp[0] - xp[1])
             elif x[i] > xp[-1]:
